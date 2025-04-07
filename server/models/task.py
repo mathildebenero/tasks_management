@@ -8,6 +8,7 @@ from bson import ObjectId
 VALID_CATEGORIES = ["Work", "Personal", "Errands", "Study", "Fitness"]
 VALID_STATUSES = ["done", "undone"]
 
+# validate_task_data() makes sure all required fields are there and valid
 def validate_task_data(data):
     required_fields = ["user_id", "name", "due_date", "status", "description", "category", "time_estimate"]
 
@@ -23,13 +24,15 @@ def validate_task_data(data):
         return False, f"Category must be one of: {', '.join(VALID_CATEGORIES)}"
 
     try:
-        # Validate that user_id is a valid ObjectId
+        # Validate that user_id is a valid ObjectId and prevents injection/format errors
         ObjectId(data["user_id"])
     except Exception:
         return False, "Invalid user_id format."
 
     return True, None
 
+# format_task_document() is useful when sending tasks to the frontend
+# used to convert raw MongoDB documents into a clean and frontend-friendly JSON structure.
 def format_task_document(task_doc):
     """
     Formats a task document for client-friendly JSON response.

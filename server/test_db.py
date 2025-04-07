@@ -6,3 +6,4 @@ users_collection.insert_one({
     "email": "test@example.com",
     "password": "hashed_password"
 })
+
