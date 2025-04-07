@@ -55,32 +55,7 @@
     </p>
   </div>
 
-  <script>
-    const loginForm = document.getElementById('loginForm');
-
-    // no errors at first
-
-    loginForm.addEventListener('submit', function(event) {
-      document.getElementById('usernameError').textContent = '';
-      document.getElementById('passwordError').textContent = '';
-
-    // Use the HTML5 Constraint Validation API (as in the Register form)
-
-      if (!loginForm.checkValidity()) {
-        event.preventDefault();
-
-        if (!loginForm.username.checkValidity()) {
-          document.getElementById('usernameError').textContent =
-            'Username is required (min 3 characters).';
-        }
-
-        if (!loginForm.password.checkValidity()) {
-          document.getElementById('passwordError').textContent =
-            'Password is required (min 6 characters).';
-        }
-      }
-    });
-  </script>
+  <script src="app.js"></script>
 
 </body>
 </html>

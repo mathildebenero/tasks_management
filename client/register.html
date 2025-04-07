@@ -68,37 +68,7 @@
     </p>
   </div>
 
-  <!--JavaScript listens for the submit event and checks for invalid inputs, then displays custom error messages. -->
-  <script>
-    // Simple client-side validation example (optional)
-    const registerForm = document.getElementById('registerForm');
-
-    registerForm.addEventListener('submit', function(event) {
-      // Clear previous errors
-      document.getElementById('usernameError').textContent = '';
-      document.getElementById('emailError').textContent = '';
-      document.getElementById('passwordError').textContent = '';
-
-      // Use the HTML5 Constraint Validation API
-      if (!registerForm.checkValidity()) {
-        // automatically checks each form input based on the HTML attributes, each input field has its own checkValidity() method
-        event.preventDefault(); // Prevent form from submitting
-        // Manually show messages for each invalid field
-        if (!registerForm.username.checkValidity()) {
-          document.getElementById('usernameError').textContent =
-            'Username is required (3-20 characters).';
-        }
-        if (!registerForm.email.checkValidity()) {
-          document.getElementById('emailError').textContent =
-            'Invalid email format.';
-        }
-        if (!registerForm.password.checkValidity()) {
-          document.getElementById('passwordError').textContent =
-            'Password is required (min 6 characters).';
-        }
-      }
-    });
-  </script>
+  <script src="app.js"></script>
 
 </body>
 </html>
