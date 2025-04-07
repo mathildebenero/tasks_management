@@ -1,0 +1,104 @@
+    <!-- Register Page
+    1. Fields are username, email, password
+    2. added input validations as minimum and maximum length and required type
+    3. option to navigate to login page
+    4. javascript code for showing error message if inputs are invalid
+      -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Register</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="form-container">
+    <h1>Register</h1>
+    <form id="registerForm" novalidate>
+      <!-- Username -->
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username"
+          placeholder="Enter your username" 
+          required
+          minlength="3" 
+          maxlength="20"
+        />
+        <small class="error" id="usernameError"></small>
+      </div>
+
+      <!-- Email -->
+      <div class="form-group">
+        <label for="email">Email</label>
+        <input 
+          type="email" 
+          id="email" 
+          name="email" 
+          placeholder="Enter your email"
+          required
+        />
+        <small class="error" id="emailError"></small>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          placeholder="Enter your password" 
+          required 
+          minlength="6"
+        />
+        <small class="error" id="passwordError"></small>
+      </div>
+
+      <button type="submit">Register</button>
+    </form>
+
+    <p class="redirect">
+      Already have an account? 
+      <a href="login.html">Login</a>
+    </p>
+  </div>
+
+  <!--JavaScript listens for the submit event and checks for invalid inputs, then displays custom error messages. -->
+  <script>
+    // Simple client-side validation example (optional)
+    const registerForm = document.getElementById('registerForm');
+
+    registerForm.addEventListener('submit', function(event) {
+      // Clear previous errors
+      document.getElementById('usernameError').textContent = '';
+      document.getElementById('emailError').textContent = '';
+      document.getElementById('passwordError').textContent = '';
+
+      // Use the HTML5 Constraint Validation API
+      if (!registerForm.checkValidity()) {
+        // automatically checks each form input based on the HTML attributes, each input field has its own checkValidity() method
+        event.preventDefault(); // Prevent form from submitting
+        // Manually show messages for each invalid field
+        if (!registerForm.username.checkValidity()) {
+          document.getElementById('usernameError').textContent =
+            'Username is required (3-20 characters).';
+        }
+        if (!registerForm.email.checkValidity()) {
+          document.getElementById('emailError').textContent =
+            'Invalid email format.';
+        }
+        if (!registerForm.password.checkValidity()) {
+          document.getElementById('passwordError').textContent =
+            'Password is required (min 6 characters).';
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>

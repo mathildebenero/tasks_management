@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tasks</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+  <!-- Top Navigation Bar -->
+  <nav class="navbar">
+    <div class="nav-left">
+      <button id="addTaskBtn">Add Task</button>
+
+      <select id="filterCategory">
+        <option value="">Filter by Category</option>
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+        <option value="Errands">Errands</option>
+        <option value="Study">Study</option>
+        <option value="Fitness">Fitness</option>
+      </select>
+
+      <select id="filterTime">
+        <option value="">Filter by Time</option>
+        <option value="shortest">Shortest First</option>
+        <option value="longest">Longest First</option>
+      </select>
+
+      <select id="filterDueDate">
+        <option value="">Filter by Due Date</option>
+        <option value="soonest">Most Urgent First</option>
+        <option value="latest">Least Urgent First</option>
+      </select>
+
+      <input type="text" id="searchTask" placeholder="Search by task name" />
+    </div>
+
+    <div class="nav-right">
+      <button id="logoutBtn">Logout</button>
+    </div>
+  </nav>
+
+  <!-- Main Task List Section -->
+  <main id="tasksContainer">
+    <!-- Task cards will be injected here via JavaScript -->
+  </main>
+
+<!-- Modal for Task Details -->
+<div id="taskModal" class="modal hidden">
+    <div class="modal-content">
+      <button id="closeModal" class="close-button">&times;</button>
+  
+      <h2 id="modalTaskName"></h2>
+      <p><strong>Due Date:</strong> <span id="modalDueDate"></span></p>
+      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
+      <p><strong>Category:</strong> <span id="modalCategory"></span></p>
+      <p><strong>Time Estimate:</strong> <span id="modalTimeEstimate"></span></p>
+      <p><strong>Description:</strong></p>
+      <p id="modalDescription"></p>
+  
+      <button id="deleteTaskBtn">Delete</button>
+      <button id="updateTaskBtn">Update</button>
+    </div>
+  </div>
+  
+  <script>
+    // Mock Task Data
+    const mockTasks = [
+      {
+        id: 1,
+        name: "Finish frontend layout",
+        dueDate: "2024-04-12",
+        status: "undone",
+        description: "Implement the full HTML structure for tasks page.",
+        category: "Work",
+        timeEstimate: "2 hours"
+      },
+      {
+        id: 2,
+        name: "Grocery Shopping",
+        dueDate: "2024-04-10",
+        status: "done",
+        description: "Buy veggies, fruits, and cleaning supplies.",
+        category: "Errands",
+        timeEstimate: "45 minutes"
+      }
+    ];
+  
+    const tasksContainer = document.getElementById("tasksContainer");
+    const modal = document.getElementById("taskModal");
+    const closeModalBtn = document.getElementById("closeModal");
+  
+    function renderTasks(tasks) {
+      tasksContainer.innerHTML = "";
+      tasks.forEach(task => {
+        const card = document.createElement("div");
+        card.className = "task-card";
+        card.innerHTML = `
+          <h3>${task.name}</h3>
+          <p><strong>Due:</strong> ${task.dueDate}</p>
+          <p><strong>Status:</strong> ${task.status}</p>
+          <p><strong>Category:</strong> ${task.category}</p>
+          <p><strong>Time:</strong> ${task.timeEstimate}</p>
+        `;
+  
+        // Show modal with the task's data when clicked
+        card.addEventListener("click", () => openModal(task));
+        tasksContainer.appendChild(card);
+      });
+    }
+  
+    function openModal(task) {
+      document.getElementById("modalTaskName").textContent = task.name;
+      document.getElementById("modalDueDate").textContent = task.dueDate;
+      document.getElementById("modalStatus").textContent = task.status;
+      document.getElementById("modalCategory").textContent = task.category;
+      document.getElementById("modalTimeEstimate").textContent = task.timeEstimate;
+      document.getElementById("modalDescription").textContent = task.description;
+      modal.classList.remove("hidden");
+    }
+  
+    // Close modal on button click
+    closeModalBtn.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+  
+    // Optional: Close modal if clicking outside the modal content
+    window.addEventListener("click", (event) => {
+      if (event.target === modal) {
+        modal.classList.add("hidden");
+      }
+    });
+  
+    // Initialize page
+    renderTasks(mockTasks);
+  </script>
+  
+
+</body>
+</html>

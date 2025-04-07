@@ -1,0 +1,86 @@
+    <!-- Login Page
+    1. Fields to login are username and password
+    2. added input validations as minimum and maximum length and required type
+    3. option to navigate to register page
+    4. javascript code for showing error message if inputs are invalid
+      -->
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Login</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+
+  <div class="form-container">
+    <h1>Login</h1>
+
+    <form id="loginForm" novalidate>
+      <!-- Username -->
+      <div class="form-group">
+        <label for="username">Username</label>
+        <input 
+          type="text" 
+          id="username" 
+          name="username"
+          placeholder="Enter your username" 
+          required
+          minlength="3"
+        />
+        <small class="error" id="usernameError"></small>
+      </div>
+
+      <!-- Password -->
+      <div class="form-group">
+        <label for="password">Password</label>
+        <input 
+          type="password" 
+          id="password" 
+          name="password" 
+          placeholder="Enter your password" 
+          required 
+          minlength="6"
+        />
+        <small class="error" id="passwordError"></small>
+      </div>
+
+      <button type="submit">Login</button>
+    </form>
+
+    <p class="redirect">
+      Don’t have an account? 
+      <a href="register.html">Register</a>
+    </p>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+
+    // no errors at first
+
+    loginForm.addEventListener('submit', function(event) {
+      document.getElementById('usernameError').textContent = '';
+      document.getElementById('passwordError').textContent = '';
+
+    // Use the HTML5 Constraint Validation API (as in the Register form)
+
+      if (!loginForm.checkValidity()) {
+        event.preventDefault();
+
+        if (!loginForm.username.checkValidity()) {
+          document.getElementById('usernameError').textContent =
+            'Username is required (min 3 characters).';
+        }
+
+        if (!loginForm.password.checkValidity()) {
+          document.getElementById('passwordError').textContent =
+            'Password is required (min 6 characters).';
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
