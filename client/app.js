@@ -234,6 +234,138 @@ document.addEventListener("DOMContentLoaded", () => {
             }
           });
 
+        // update button
+        const updateTaskBtn = document.getElementById("updateTaskBtn");
+        const saveTaskBtn = document.getElementById("saveTaskBtn");
+
+        if (updateTaskBtn) updateTaskBtn.classList.remove("hidden");
+        if (saveTaskBtn) saveTaskBtn.classList.add("hidden");
+
+        // tracking the id of the selected task
+        let currentTaskId = null; // Store the task id of the opened modal in currentTaskId (initialized to null when no opened task modal)
+        // Open task modal and store the current task ID
+        function openModal(task) {
+            currentTaskId = task.id;
+          
+            // Fill in the values
+            document.getElementById("modalTaskName").value = task.name;
+            document.getElementById("modalDueDate").value = task.due_date;
+            document.getElementById("modalStatus").value = task.status;
+            document.getElementById("modalCategory").value = task.category;
+            document.getElementById("modalTimeEstimate").value = task.time_estimate;
+            document.getElementById("modalDescription").value = task.description;
+          
+            // Always disable inputs by default
+            ["modalTaskName", "modalDueDate", "modalStatus", "modalCategory", "modalTimeEstimate", "modalDescription"]
+              .forEach(id => document.getElementById(id).disabled = true);
+          
+            // Reset buttons
+            document.getElementById("updateTaskBtn").classList.remove("hidden");
+            document.getElementById("saveTaskBtn").classList.add("hidden");
+          
+            modal.classList.remove("hidden");
+          }
+          
+  
+
+        // delete task function connected to the backend
+        const deleteTaskBtn = document.getElementById("deleteTaskBtn");
+        deleteTaskBtn.addEventListener("click", async () => {
+            if (!currentTaskId) return;
+          
+            const confirmed = confirm("Are you sure you want to delete this task?");
+            if (!confirmed) return;
+          
+            const token = localStorage.getItem("token");
+          
+            try {
+              const res = await fetch(`http://localhost:5000/api/tasks/${currentTaskId}`, {
+                method: "DELETE",
+                headers: {
+                  "Authorization": `Bearer ${token}`,
+                },
+              });
+          
+              const result = await res.json();
+          
+              if (!res.ok) {
+                alert(result.error || "Failed to delete task.");
+                return;
+              }
+          
+              alert("Task deleted successfully.");
+              modal.classList.add("hidden");
+              currentTaskId = null;
+              loadTasks(); // Refresh task list
+            } catch (err) {
+              console.error("Delete error:", err);
+              alert("Server error while deleting.");
+            }
+          });          
+
+          updateTaskBtn.addEventListener("click", () => {
+            // Hide update, show save
+            updateTaskBtn.classList.add("hidden");
+            saveTaskBtn.classList.remove("hidden");
+          
+            // Enable all fields for editing
+            ["modalTaskName", "modalDueDate", "modalStatus", "modalCategory", "modalTimeEstimate", "modalDescription"]
+              .forEach(id => document.getElementById(id).disabled = false);
+          });          
+
+
+        // update method submit
+        saveTaskBtn.addEventListener("click", async () => {
+            const token = localStorage.getItem("token");
+            if (!token || !currentTaskId) return;
+          
+            const taskData = {
+              name: document.getElementById("modalTaskName").value.trim(),
+              due_date: document.getElementById("modalDueDate").value,
+              status: document.getElementById("modalStatus").value,
+              category: document.getElementById("modalCategory").value,
+              time_estimate: document.getElementById("modalTimeEstimate").value.trim(),
+              description: document.getElementById("modalDescription").value.trim(),
+            };
+          
+            // Validate
+            for (const [key, value] of Object.entries(taskData)) {
+              if (!value) {
+                alert(`Please fill in the ${key.replace("_", " ")} field.`);
+                return;
+              }
+            }
+          
+            try {
+              const res = await fetch(`http://localhost:5000/api/tasks/${currentTaskId}`, {
+                method: "PUT",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(taskData),
+              });
+          
+              const result = await res.json();
+          
+              if (!res.ok) {
+                alert(result.error || "Failed to update task.");
+                return;
+              }
+          
+              alert("✅ Task updated!");
+              modal.classList.add("hidden");
+              updateTaskBtn.classList.remove("hidden");
+              saveTaskBtn.classList.add("hidden");
+              loadTasks();
+            } catch (err) {
+              console.error("Update error:", err);
+              alert("Something went wrong.");
+            }
+          });
+          
+
+        
         // Close modal if clicking outside the modal content
         window.addEventListener("click", (event) => {
             if (event.target === modal) {
@@ -266,27 +398,16 @@ document.addEventListener("DOMContentLoaded", () => {
             card.className = "task-card";
             card.innerHTML = `
                 <h3>${task.name}</h3>
-                <p><strong>Due:</strong> ${task.dueDate}</p>
+                <p><strong>Due:</strong> ${task.due_date}</p>
                 <p><strong>Status:</strong> ${task.status}</p>
                 <p><strong>Category:</strong> ${task.category}</p>
-                <p><strong>Time:</strong> ${task.timeEstimate}</p>
+                <p><strong>Time:</strong> ${task.time_estimate}</p>
             `;
 
             // Show modal with the task's data when clicked
             card.addEventListener("click", () => openModal(task));
             tasksContainer.appendChild(card);
             });
-        }
-
-        // opens a task modal when clicked on
-        function openModal(task) {
-            document.getElementById("modalTaskName").textContent = task.name;
-            document.getElementById("modalDueDate").textContent = task.dueDate;
-            document.getElementById("modalStatus").textContent = task.status;
-            document.getElementById("modalCategory").textContent = task.category;
-            document.getElementById("modalTimeEstimate").textContent = task.timeEstimate;
-            document.getElementById("modalDescription").textContent = task.description;
-            modal.classList.remove("hidden");
         }
 
         // Initialize page

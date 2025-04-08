@@ -111,22 +111,47 @@
   
 
 <!-- Modal for Task Details -->
+<!-- Task Modal -->
 <div id="taskModal" class="modal hidden">
-    <div class="modal-content">
-      <button id="closeModal" class="close-button">&times;</button>
-  
-      <h2 id="modalTaskName"></h2>
-      <p><strong>Due Date:</strong> <span id="modalDueDate"></span></p>
-      <p><strong>Status:</strong> <span id="modalStatus"></span></p>
-      <p><strong>Category:</strong> <span id="modalCategory"></span></p>
-      <p><strong>Time Estimate:</strong> <span id="modalTimeEstimate"></span></p>
-      <p><strong>Description:</strong></p>
-      <p id="modalDescription"></p>
-  
-      <button id="deleteTaskBtn">Delete</button>
-      <button id="updateTaskBtn">Update</button>
-    </div>
+  <div class="modal-content">
+    <button id="closeModal" class="close-button">&times;</button>
+    <h2>
+      <input id="modalTaskName" type="text" disabled />
+    </h2>
+
+    <p><strong>Due Date:</strong>
+      <input id="modalDueDate" type="date" disabled />
+    </p>
+
+    <p><strong>Status:</strong>
+      <select id="modalStatus" disabled>
+        <option value="undone">Undone</option>
+        <option value="done">Done</option>
+      </select>
+    </p>
+
+    <p><strong>Category:</strong>
+      <select id="modalCategory" disabled>
+        <option value="Work">Work</option>
+        <option value="Personal">Personal</option>
+        <option value="Errands">Errands</option>
+        <option value="Study">Study</option>
+        <option value="Fitness">Fitness</option>
+      </select>
+    </p>
+
+    <p><strong>Time Estimate:</strong>
+      <input id="modalTimeEstimate" type="text" disabled />
+    </p>
+
+    <p><strong>Description:</strong></p>
+    <textarea id="modalDescription" rows="3" disabled></textarea>
+
+    <button id="deleteTaskBtn">Delete</button>
+    <button id="updateTaskBtn">Update</button>
+    <button id="saveTaskBtn" class="hidden">Save</button>
   </div>
+</div>
 
   <script src="app.js"></script>
 
