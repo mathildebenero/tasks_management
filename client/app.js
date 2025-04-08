@@ -411,38 +411,91 @@ document.addEventListener("DOMContentLoaded", () => {
         }
 
         // Initialize page
+
+        // Filter functions
+
+        // category filter
+        const filterCategorySelect = document.getElementById("filterCategory");
+        // order time
+        const orderTimeSelect = document.getElementById("orderTime");
+        
+        // When category changes, include the current selected time order
+        filterCategorySelect.addEventListener("change", () => {
+          const selectedCategory = filterCategorySelect.value;
+          const selectedOrder = orderTimeSelect.value;
+          loadTasks(selectedCategory, selectedOrder);
+        });
+        
+        // When time order changes, include the current selected category
+        orderTimeSelect.addEventListener("change", () => {
+          const selectedOrder = orderTimeSelect.value;
+          const selectedCategory = filterCategorySelect.value;
+          loadTasks(selectedCategory, selectedOrder);
+        });
+        
+
+
+        // Help function to extract the number of hours from time_estimate field
+        function parseHours(timeEstimate) {
+            const match = timeEstimate.match(/\d+/); // Finds the first number
+            return match ? parseInt(match[0], 10) : 0; // Default to 0 if not found
+        }
+
+        // Help function to sort tasks by their time_estimate
+        function sortTasksByTime(tasks, order) {
+            return tasks.sort((a, b) => {
+              const hoursA = parseHours(a.time_estimate);
+              const hoursB = parseHours(b.time_estimate);
+          
+              return order === "shortest"
+                ? hoursA - hoursB // Ascending
+                : hoursB - hoursA; // Descending
+            });
+        }  
+          
+
         loadTasks(); // Fetch real tasks from backend
 
-        async function loadTasks() {
-        const token = localStorage.getItem("token");
+        async function loadTasks(selectedCategory = "", selectedOrder = "") {
+            const token = localStorage.getItem("token");
 
-        if (!token) {
-            alert("You must be logged in to see your tasks.");
-            window.location.href = "login.html";
-            return;
-        }
-
-        try {
-            const res = await fetch("http://localhost:5000/api/tasks", {
-            headers: {
-                "Authorization": `Bearer ${token}`
-            }
-            });
-
-            const result = await res.json();
-
-            if (!res.ok) {
-            alert(result.error || "Failed to load tasks. Redirecting to login.");
-            window.location.href = "login.html";
-            return;
+            if (!token) {
+                alert("You must be logged in to see your tasks.");
+                window.location.href = "login.html";
+                return;
             }
 
-            renderTasks(result); // Renders the list of tasks
-        } catch (err) {
-            console.error("Fetch error:", err);
-            alert("Unable to connect to the server.");
+            try {
+                const res = await fetch("http://localhost:5000/api/tasks", {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+                });
+
+                const result = await res.json();
+
+                if (!res.ok) {
+                alert(result.error || "Failed to load tasks. Redirecting to login.");
+                window.location.href = "login.html";
+                return;
+                }
+
+                let tasks = result;
+                if (selectedCategory) {
+                    tasks = tasks.filter(task => task.category === selectedCategory);
+                }
+                
+                if (selectedOrder) {
+                    tasks = sortTasksByTime(tasks, selectedOrder);
+                }
+                
+                renderTasks(tasks);
+                
+            } catch (err) {
+                console.error("Fetch error:", err);
+                alert("Unable to connect to the server.");
+            }
         }
         }
-    }
   });
   
