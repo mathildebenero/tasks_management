@@ -5,31 +5,72 @@ document.addEventListener("DOMContentLoaded", () => {
     const isLoginPage = document.getElementById("loginForm");
     const isRegisterPage = document.getElementById("registerForm");
     const isTasksPage = document.getElementById("tasksContainer");
-  
-    if (isLoginPage) {
-        // login validation logic code for showing error message if inputs are invalid
 
+    // Login function
+    // It validates the form inputs
+    // Sends a POST request to your backend’s /api/auth/login
+    // If successful:
+    // Saves the JWT token to localStorage
+    // Redirects to tasks.html
+    // If failed, shows an alert with the error
+    if (isLoginPage) {
+
+        // saves the login form html object to loginform
         const loginForm = document.getElementById('loginForm');
 
-        // no errors at first
-        loginForm.addEventListener('submit', function(event) {
-        document.getElementById('usernameError').textContent = '';
-        document.getElementById('passwordError').textContent = '';
+        loginForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // prevent the page to reload
 
-        // Use the HTML5 Constraint Validation API (as in the Register form)
-        if (!loginForm.checkValidity()) {
-            event.preventDefault();
+            // clear previous errors
+            document.getElementById('usernameError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
 
-            if (!loginForm.username.checkValidity()) {
-            document.getElementById('usernameError').textContent =
-                'Username is required (min 3 characters).';
+            // Use the HTML5 Constraint Validation API (as in the Register form)
+            if (!loginForm.checkValidity()) {
+                if (!loginForm.username.checkValidity()) {
+                document.getElementById('usernameError').textContent =
+                    'Username is required (min 3 characters).';
+                }
+                if (!loginForm.password.checkValidity()) {
+                document.getElementById('passwordError').textContent =
+                    'Password is required (min 6 characters).';
+                }
+                return;
             }
 
-            if (!loginForm.password.checkValidity()) {
-            document.getElementById('passwordError').textContent =
-                'Password is required (min 6 characters).';
+            // Get form values
+            const formData = {
+                username: loginForm.username.value.trim(),
+                password: loginForm.password.value.trim(),
+            };
+
+            try {
+                const response = await fetch("http://localhost:5000/api/auth/login", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                // Save token to localStorage
+                localStorage.setItem("token", result.token);
+
+                // Save user info too
+                localStorage.setItem("user", JSON.stringify(result.user));
+
+                alert("✅ Login successful!");
+                window.location.href = "tasks.html";
+                } else {
+                alert(`❌ Login failed: ${result.error || "Invalid credentials"}`);
+                }
+            } catch (err) {
+                alert("❌ Network error. Please try again.");
+                console.error(err);
             }
-        }
         });
 
     }
