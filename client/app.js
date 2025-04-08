@@ -149,48 +149,96 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
   
+    // Tasks page
     if (isTasksPage) {
-      // script of the tasks page
 
-        // Mock Task Data
-        const mockTasks = [
-            {
-            id: 1,
-            name: "Finish frontend layout",
-            dueDate: "2024-04-12",
-            status: "undone",
-            description: "Implement the full HTML structure for tasks page.",
-            category: "Work",
-            timeEstimate: "2 hours"
-            },
-            {
-            id: 2,
-            name: "Grocery Shopping",
-            dueDate: "2024-04-10",
-            status: "done",
-            description: "Buy veggies, fruits, and cleaning supplies.",
-            category: "Errands",
-            timeEstimate: "45 minutes"
-            }
-        ];
-
+        // saving all the html objects fron tasks.html
         const tasksContainer = document.getElementById("tasksContainer");
         const modal = document.getElementById("taskModal");
-        const closeModalBtn = document.getElementById("closeModal");
-        // Add Task Modal
-        const addTaskModal = document.getElementById("addTaskModal");
-        const openAddTaskBtn = document.getElementById("addTaskBtn");
-        const closeAddTaskBtn = document.getElementById("closeAddTaskModal");
-        const addTaskForm = document.getElementById("addTaskForm");
 
-        // Open modal when Add Task button is clicked
-        openAddTaskBtn.addEventListener("click", () => {
-        addTaskModal.classList.remove("hidden");
+        const closeModalBtn = document.getElementById("closeModal");
+        // Close modal on button click
+        closeModalBtn.addEventListener("click", () => {
+            modal.classList.add("hidden");
         });
 
+        const openAddTaskBtn = document.getElementById("addTaskBtn");
+        // Open modal when Add Task button is clicked
+        openAddTaskBtn.addEventListener("click", () => {
+            addTaskModal.classList.remove("hidden");
+        });
+
+        const closeAddTaskBtn = document.getElementById("closeAddTaskModal");
         // Close modal on X
         closeAddTaskBtn.addEventListener("click", () => {
-        addTaskModal.classList.add("hidden");
+            addTaskModal.classList.add("hidden");
+        });
+
+        const addTaskModal = document.getElementById("addTaskModal");
+
+        // add task function connected to the backend
+        const addTaskForm = document.getElementById("addTaskForm");
+        addTaskForm.addEventListener("submit", async function (e) {
+            e.preventDefault();
+          
+            const token = localStorage.getItem("token");
+            if (!token) {
+              alert("You must be logged in.");
+              window.location.href = "login.html";
+              return;
+            }
+          
+            // Collect form data
+            const taskData = {
+              name: addTaskForm.taskName.value.trim(),
+              due_date: addTaskForm.dueDate.value,
+              description: addTaskForm.description.value.trim(),
+              status: addTaskForm.status.value,
+              category: addTaskForm.category.value,
+              time_estimate: addTaskForm.timeEstimate.value.trim(),
+            };
+          
+            // Simple client-side validation
+            for (const [key, value] of Object.entries(taskData)) {
+              if (!value) {
+                alert(`Please fill in the ${key.replace("_", " ")} field.`);
+                return;
+              }
+            }
+          
+            try {
+              const res = await fetch("http://localhost:5000/api/tasks", {
+                method: "POST",
+                headers: {
+                  "Content-Type": "application/json",
+                  "Authorization": `Bearer ${token}`,
+                },
+                body: JSON.stringify(taskData),
+              });
+          
+              const result = await res.json();
+          
+              if (!res.ok) {
+                alert(result.error || "Failed to add task.");
+                return;
+              }
+          
+              // Success
+              alert("Task added successfully!");
+              addTaskModal.classList.add("hidden");
+              addTaskForm.reset();
+              loadTasks(); // Refresh tasks list
+            } catch (err) {
+              console.error("Error adding task:", err);
+              alert("Server error. Please try again.");
+            }
+          });
+
+        // Close modal if clicking outside the modal content
+        window.addEventListener("click", (event) => {
+            if (event.target === modal) {
+            modal.classList.add("hidden");
+            }
         });
 
         // Close modal if clicking outside content
@@ -200,16 +248,17 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         });
 
-        // Temporary behavior: close modal on form submit
-        addTaskForm.addEventListener("submit", function (e) {
-        e.preventDefault();
-        alert("Task saved! (This is a mock placeholder.)");
-        addTaskModal.classList.add("hidden");
-        addTaskForm.reset();
-        });
+        // logout button logouts a user and removes its toke from the localstorage
+        const logoutBtn = document.getElementById("logoutBtn");
+        logoutBtn.addEventListener("click", () => {
+            localStorage.removeItem("token");
+            localStorage.removeItem("user");
+            alert("Logged out successfully.");
+            window.location.href = "login.html";
+          });
+          
 
         // displayind the cards
-
         function renderTasks(tasks) {
             tasksContainer.innerHTML = "";
             tasks.forEach(task => {
@@ -229,6 +278,7 @@ document.addEventListener("DOMContentLoaded", () => {
             });
         }
 
+        // opens a task modal when clicked on
         function openModal(task) {
             document.getElementById("modalTaskName").textContent = task.name;
             document.getElementById("modalDueDate").textContent = task.dueDate;
@@ -239,21 +289,39 @@ document.addEventListener("DOMContentLoaded", () => {
             modal.classList.remove("hidden");
         }
 
-        // Close modal on button click
-        closeModalBtn.addEventListener("click", () => {
-            modal.classList.add("hidden");
-        });
-
-        // Optional: Close modal if clicking outside the modal content
-        window.addEventListener("click", (event) => {
-            if (event.target === modal) {
-            modal.classList.add("hidden");
-            }
-        });
-
         // Initialize page
-        renderTasks(mockTasks);
+        loadTasks(); // Fetch real tasks from backend
 
+        async function loadTasks() {
+        const token = localStorage.getItem("token");
+
+        if (!token) {
+            alert("You must be logged in to see your tasks.");
+            window.location.href = "login.html";
+            return;
+        }
+
+        try {
+            const res = await fetch("http://localhost:5000/api/tasks", {
+            headers: {
+                "Authorization": `Bearer ${token}`
+            }
+            });
+
+            const result = await res.json();
+
+            if (!res.ok) {
+            alert(result.error || "Failed to load tasks. Redirecting to login.");
+            window.location.href = "login.html";
+            return;
+            }
+
+            renderTasks(result); // Renders the list of tasks
+        } catch (err) {
+            console.error("Fetch error:", err);
+            alert("Unable to connect to the server.");
+        }
+        }
     }
   });
   

@@ -18,7 +18,7 @@ from routes.task_routes import task_bp
 app = Flask(__name__)
 
 # allow frontend to connect (important for localhost)
-CORS(app)
+CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "http://127.0.0.1:5500"}})
 
 # Register auth and task routes
 app.register_blueprint(auth_bp)

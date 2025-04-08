@@ -11,7 +11,7 @@ task_bp = Blueprint("tasks", __name__, url_prefix="/api/tasks")
 
 
 # GET /api/tasks — Get all tasks for the logged in and authenticated user
-@task_bp.route("/", methods=["GET"])
+@task_bp.route("", methods=["GET"])
 @jwt_required
 def get_tasks():
 
@@ -27,7 +27,7 @@ def get_tasks():
 
 
 # POST /api/tasks — Create new task
-@task_bp.route("/", methods=["POST"])
+@task_bp.route("", methods=["POST"])
 @jwt_required
 def create_task():
     data = request.json
