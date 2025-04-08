@@ -34,36 +34,76 @@ document.addEventListener("DOMContentLoaded", () => {
 
     }
   
+    // Select the form by its ID: registerForm
+    // Attach a submit event listener
+    // Prevent the default form behavior
+    // Collect the form values (username, email, password)
+    // Send them to http://localhost:5000/api/auth/register using fetch
+    // Handle the response (success or error)
     if (isRegisterPage) {
-        // register validation logic code for showing error message if inputs are invalid
+
+        // getting the register form thml object from register.html
         const registerForm = document.getElementById('registerForm');
 
-        //JavaScript listens for the submit event and checks for invalid inputs, then displays custom error messages. -->
-        registerForm.addEventListener('submit', function(event) {
+        // what happens when submit button in register page is clicked
+        registerForm.addEventListener('submit', async function(event) {
+            event.preventDefault(); // stop the form from refreshing or submitting natively
 
-        // Clear previous errors
-        document.getElementById('usernameError').textContent = '';
-        document.getElementById('emailError').textContent = '';
-        document.getElementById('passwordError').textContent = '';
+            // Clear previous errors
+            document.getElementById('usernameError').textContent = '';
+            document.getElementById('emailError').textContent = '';
+            document.getElementById('passwordError').textContent = '';
 
-        // Use the HTML5 Constraint Validation API
-        if (!registerForm.checkValidity()) {
+            // Use the HTML5 Constraint Validation API
             // automatically checks each form input based on the HTML attributes, each input field has its own checkValidity() method
-            event.preventDefault(); // Prevent form from submitting
-            // Manually show messages for each invalid field
-            if (!registerForm.username.checkValidity()) {
-            document.getElementById('usernameError').textContent =
-                'Username is required (3-20 characters).';
+            if (!registerForm.checkValidity()) {
+
+                // Manually show messages for each invalid field
+                if (!registerForm.username.checkValidity()) {
+                document.getElementById('usernameError').textContent =
+                    'Username is required (3-20 characters).';
+                }
+                if (!registerForm.email.checkValidity()) {
+                document.getElementById('emailError').textContent =
+                    'Invalid email format.';
+                }
+                if (!registerForm.password.checkValidity()) {
+                document.getElementById('passwordError').textContent =
+                    'Password is required (min 6 characters).';
+                }
+                return;
             }
-            if (!registerForm.email.checkValidity()) {
-            document.getElementById('emailError').textContent =
-                'Invalid email format.';
+
+            // Extract values from the form to send to the backend
+            const formData = {
+                username: registerForm.username.value.trim(),
+                email: registerForm.email.value.trim(),
+                password: registerForm.password.value.trim(),
+            };
+
+            try {
+                const response = await fetch("http://localhost:5000/api/auth/register", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify(formData),
+                });
+
+                const result = await response.json();
+
+                if (response.ok) {
+                alert("✅ Registered successfully! Redirecting to login...");
+                window.location.href = "login.html"; // Redirect to login
+                } else {
+                // Display error from backend (e.g., "Username already exists")
+                alert(`❌ Registration failed: ${result.error || "Something went wrong"}`);
+                }
+            } catch (err) {
+                alert("❌ Network error. Please try again later.");
+                console.error(err);
             }
-            if (!registerForm.password.checkValidity()) {
-            document.getElementById('passwordError').textContent =
-                'Password is required (min 6 characters).';
-            }
-        }
+
         });
 
     }
