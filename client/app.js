@@ -418,21 +418,45 @@ document.addEventListener("DOMContentLoaded", () => {
         const filterCategorySelect = document.getElementById("filterCategory");
         // order time
         const orderTimeSelect = document.getElementById("orderTime");
-        
+        // order by date
+        const orderByDateSelect = document.getElementById("orderByDate");
+        // the search task by name input
+        const searchInput = document.getElementById("searchTask");
+
+        // when the user inputs a task name, it listens to this event and keep the name in searchQuery
+        let searchQuery = "";
+        searchInput.addEventListener("input", () => {
+        searchQuery = searchInput.value.trim().toLowerCase(); // normalize
+        const selectedCategory = filterCategorySelect.value;
+        const selectedOrder = orderTimeSelect.value;
+        const selectedOrderByDate = orderByDateSelect.value;
+        loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
+        });
+
+
         // When category changes, include the current selected time order
         filterCategorySelect.addEventListener("change", () => {
           const selectedCategory = filterCategorySelect.value;
           const selectedOrder = orderTimeSelect.value;
-          loadTasks(selectedCategory, selectedOrder);
+          const selectedOrderByDate = orderByDateSelect.value;
+          loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
         });
         
         // When time order changes, include the current selected category
         orderTimeSelect.addEventListener("change", () => {
           const selectedOrder = orderTimeSelect.value;
           const selectedCategory = filterCategorySelect.value;
-          loadTasks(selectedCategory, selectedOrder);
+          const selectedOrderByDate = orderByDateSelect.value;
+          loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
         });
         
+        // When date order changes, include the current selected category
+        orderByDateSelect.addEventListener("change", () => {
+            const selectedOrder = orderTimeSelect.value;
+            const selectedCategory = filterCategorySelect.value;
+            const selectedOrderByDate = orderByDateSelect.value;
+            loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
+          });
 
 
         // Help function to extract the number of hours from time_estimate field
@@ -452,11 +476,22 @@ document.addEventListener("DOMContentLoaded", () => {
                 : hoursB - hoursA; // Descending
             });
         }  
+        
+        // Help function to sort tasks by their due_date
+        function sortTasksByDate(tasks, order) {
+            return tasks.sort((a, b) => {
+              const dateA = new Date(a.due_date);
+              const dateB = new Date(b.due_date);
           
+              return order === "soonest"
+                ? dateA - dateB  // Earlier dates first
+                : dateB - dateA; // Later dates first
+            });
+        }
 
         loadTasks(); // Fetch real tasks from backend
 
-        async function loadTasks(selectedCategory = "", selectedOrder = "") {
+        async function loadTasks(selectedCategory = "", selectedOrder = "", selectedOrderByDate = "", query = searchQuery) {
             const token = localStorage.getItem("token");
 
             if (!token) {
@@ -488,9 +523,19 @@ document.addEventListener("DOMContentLoaded", () => {
                 if (selectedOrder) {
                     tasks = sortTasksByTime(tasks, selectedOrder);
                 }
+
+                if (selectedOrderByDate) {
+                    tasks = sortTasksByDate(tasks, selectedOrderByDate);
+                }
+                // Filter by task name
+                if (query) {
+                    tasks = tasks.filter(task =>
+                    task.name.toLowerCase().includes(query)
+                    );
+                }
                 
                 renderTasks(tasks);
-                
+
             } catch (err) {
                 console.error("Fetch error:", err);
                 alert("Unable to connect to the server.");
