@@ -129,7 +129,8 @@ def generate_categories():
     task_descriptions = [f"{t['name']}: {t['description']}" for t in tasks]
     prompt = (
         "Here is a list of tasks, each with a name and description. "
-        "Return a JSON object mapping ONLY the task names to one of 5 consistent category names total.\n\n"
+        "Return a JSON object mapping ONLY the task names to one of 5 consistent category names total."
+        "I dont want more than 5 categories, MAXIMUM 5. Based on all the existing categories. \n\n"
         "Example format: { \"Task name\": \"Category\", ... }\n\n"
         f"Tasks:\n" + "\n".join([f"{t['name']}: {t['description']}" for t in tasks])
     )

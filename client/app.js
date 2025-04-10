@@ -411,6 +411,11 @@ document.addEventListener("DOMContentLoaded", () => {
         }
         // Initialize page
 
+        let currentCategory = "";
+        let currentOrder = "";
+        let currentOrderByDate = "";
+        let searchQuery = "";
+
         // Filter functions
 
         // category filter
@@ -423,39 +428,28 @@ document.addEventListener("DOMContentLoaded", () => {
         const searchInput = document.getElementById("searchTask");
 
         // when the user inputs a task name, it listens to this event and keep the name in searchQuery
-        let searchQuery = "";
         searchInput.addEventListener("input", () => {
-        searchQuery = searchInput.value.trim().toLowerCase(); // normalize
-        const selectedCategory = filterCategorySelect.value;
-        const selectedOrder = orderTimeSelect.value;
-        const selectedOrderByDate = orderByDateSelect.value;
-        loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
+          searchQuery = searchInput.value.trim().toLowerCase();
+          loadTasks();
         });
-
 
         // When category changes, include the current selected time order
         filterCategorySelect.addEventListener("change", () => {
-          const selectedCategory = filterCategorySelect.value;
-          const selectedOrder = orderTimeSelect.value;
-          const selectedOrderByDate = orderByDateSelect.value;
-          loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
+          currentCategory = filterCategorySelect.value;
+          loadTasks();
         });
         
         // When time order changes, include the current selected category
         orderTimeSelect.addEventListener("change", () => {
-          const selectedOrder = orderTimeSelect.value;
-          const selectedCategory = filterCategorySelect.value;
-          const selectedOrderByDate = orderByDateSelect.value;
-          loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
+          currentOrder = orderTimeSelect.value;
+          loadTasks();
         });
         
         // When date order changes, include the current selected category
         orderByDateSelect.addEventListener("change", () => {
-            const selectedOrder = orderTimeSelect.value;
-            const selectedCategory = filterCategorySelect.value;
-            const selectedOrderByDate = orderByDateSelect.value;
-            loadTasks(selectedCategory, selectedOrder, selectedOrderByDate);
-          });
+          currentOrderByDate = orderByDateSelect.value;
+          loadTasks();
+        });
 
 
         // Help function to extract the number of hours from time_estimate field
@@ -490,7 +484,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
         loadTasks(); // Fetch real tasks from backend
 
-        async function loadTasks(selectedCategory = "", selectedOrder = "", selectedOrderByDate = "", query = searchQuery) {
+        async function loadTasks() {
             const token = localStorage.getItem("token");
 
             if (!token) {
@@ -513,24 +507,24 @@ document.addEventListener("DOMContentLoaded", () => {
                 window.location.href = "login.html";
                 return;
                 }
+                updateCategoryFilterOptions(result);
 
                 let tasks = result;
-                if (selectedCategory) {
-                    tasks = tasks.filter(task => task.category === selectedCategory);
+
+                if (currentCategory) {
+                  tasks = tasks.filter(task => task.category === currentCategory);
                 }
                 
-                if (selectedOrder) {
-                    tasks = sortTasksByTime(tasks, selectedOrder);
+                if (currentOrder) {
+                  tasks = sortTasksByTime(tasks, currentOrder);
                 }
-
-                if (selectedOrderByDate) {
-                    tasks = sortTasksByDate(tasks, selectedOrderByDate);
+                
+                if (currentOrderByDate) {
+                  tasks = sortTasksByDate(tasks, currentOrderByDate);
                 }
-                // Filter by task name
-                if (query) {
-                    tasks = tasks.filter(task =>
-                    task.name.toLowerCase().includes(query)
-                    );
+                
+                if (searchQuery) {
+                  tasks = tasks.filter(task => task.name.toLowerCase().includes(searchQuery));
                 }
                 
                 renderTasks(tasks);
@@ -539,44 +533,73 @@ document.addEventListener("DOMContentLoaded", () => {
                 console.error("Fetch error:", err);
                 alert("Unable to connect to the server.");
             }
-        }
-        }
         
-        // AI button
-        const generateCategoriesBtn = document.getElementById("generateCategoriesBtn");
-        generateCategoriesBtn.addEventListener("click", async () => {
-          const confirmed = confirm("Do you want to generate categories for uncategorized tasks using AI?");
-          if (!confirmed) return;
-        
-          const token = localStorage.getItem("token");
-          if (!token) {
-            alert("You must be logged in.");
-            return;
           }
-        
-          try {
-            const res = await fetch("http://localhost:5000/api/tasks/generate-categories", {
-              method: "POST",
-              headers: {
-                "Authorization": `Bearer ${token}`,
-              },
-            });
-        
-            const result = await res.json();
-        
-            if (!res.ok) {
-              console.error("AI category generation error:", result.error || result.details);
-              alert("❌ Failed to generate categories.");
+
+          // AI button
+          const generateCategoriesBtn = document.getElementById("generateCategoriesBtn");
+          generateCategoriesBtn.addEventListener("click", async () => {
+            const confirmed = confirm("Do you want to generate categories for uncategorized tasks using AI?");
+            if (!confirmed) return;
+          
+            const token = localStorage.getItem("token");
+            if (!token) {
+              alert("You must be logged in.");
               return;
             }
-        
-            alert("✅ Categories generated successfully!");
-            loadTasks(); // Refresh the UI
-          } catch (err) {
-            console.error("Error calling AI categorization API:", err);
-            alert("❌ Something went wrong.");
-          }
+          
+            try {
+              const res = await fetch("http://localhost:5000/api/tasks/generate-categories", {
+                method: "POST",
+                headers: {
+                  "Authorization": `Bearer ${token}`,
+                },
+              });
+          
+              const result = await res.json();
+          
+              if (!res.ok) {
+                console.error("AI category generation error:", result.error || result.details);
+                alert("❌ Failed to generate categories.");
+                return;
+              }
+          
+              alert("✅ Categories generated successfully!");
+              loadTasks(); // Refresh the UI
+            } catch (err) {
+              console.error("Error calling AI categorization API:", err);
+              alert("❌ Something went wrong.");
+            }
         });
+
+        // showing the categories generated by the AI in the button filter
+        function updateCategoryFilterOptions(tasks) {
+          const filterSelect = document.getElementById("filterCategory");
+          const currentValue = filterSelect.value; // preserve selection
+        
+          // Get all unique non-empty categories
+          const uniqueCategories = [...new Set(tasks.map(t => t.category).filter(Boolean))];
+        
+          // Clear existing options
+          filterSelect.innerHTML = `<option value="">Filter by Category</option>`;
+        
+          // Add new options
+          uniqueCategories.forEach(category => {
+            const option = document.createElement("option");
+            option.value = category;
+            option.textContent = category;
+            filterSelect.appendChild(option);
+          });
+        
+          // Restore selected value if still valid
+          if (uniqueCategories.includes(currentValue)) {
+            filterSelect.value = currentValue;
+          }
+        }
+        
+        
+        }
+        
         
   });
   
