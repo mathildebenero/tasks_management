@@ -10,7 +10,7 @@ VALID_STATUSES = ["done", "undone"]
 
 # validate_task_data() makes sure all required fields are there and valid
 def validate_task_data(data):
-    required_fields = ["user_id", "name", "due_date", "status", "description", "category", "time_estimate"]
+    required_fields = ["user_id", "name", "due_date", "status", "description", "time_estimate"]
 
     for field in required_fields:
         value = data.get(field)
@@ -20,7 +20,7 @@ def validate_task_data(data):
     if data["status"] not in VALID_STATUSES:
         return False, "Status must be 'done' or 'undone'."
 
-    if data["category"] not in VALID_CATEGORIES:
+    if data.get("category") and data["category"] not in VALID_CATEGORIES:
         return False, f"Category must be one of: {', '.join(VALID_CATEGORIES)}"
 
     try:

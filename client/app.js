@@ -194,13 +194,13 @@ document.addEventListener("DOMContentLoaded", () => {
               due_date: addTaskForm.dueDate.value,
               description: addTaskForm.description.value.trim(),
               status: addTaskForm.status.value,
-              category: addTaskForm.category.value,
+              category: "",  // AI will generate this later
               time_estimate: addTaskForm.timeEstimate.value.trim(),
             };
           
             // Simple client-side validation
             for (const [key, value] of Object.entries(taskData)) {
-              if (!value) {
+              if (key !== "category" && !value) {
                 alert(`Please fill in the ${key.replace("_", " ")} field.`);
                 return;
               }
@@ -309,7 +309,7 @@ document.addEventListener("DOMContentLoaded", () => {
             saveTaskBtn.classList.remove("hidden");
           
             // Enable all fields for editing
-            ["modalTaskName", "modalDueDate", "modalStatus", "modalCategory", "modalTimeEstimate", "modalDescription"]
+            ["modalTaskName", "modalDueDate", "modalStatus", "modalTimeEstimate", "modalDescription"]
               .forEach(id => document.getElementById(id).disabled = false);
           });          
 
@@ -323,14 +323,14 @@ document.addEventListener("DOMContentLoaded", () => {
               name: document.getElementById("modalTaskName").value.trim(),
               due_date: document.getElementById("modalDueDate").value,
               status: document.getElementById("modalStatus").value,
-              category: document.getElementById("modalCategory").value,
+              category: "",  // AI will generate this later
               time_estimate: document.getElementById("modalTimeEstimate").value.trim(),
               description: document.getElementById("modalDescription").value.trim(),
             };
           
             // Validate
             for (const [key, value] of Object.entries(taskData)) {
-              if (!value) {
+              if (key !== "category" && !value) {
                 alert(`Please fill in the ${key.replace("_", " ")} field.`);
                 return;
               }
@@ -409,7 +409,6 @@ document.addEventListener("DOMContentLoaded", () => {
             tasksContainer.appendChild(card);
             });
         }
-
         // Initialize page
 
         // Filter functions
@@ -542,5 +541,42 @@ document.addEventListener("DOMContentLoaded", () => {
             }
         }
         }
+        
+        // AI button
+        const generateCategoriesBtn = document.getElementById("generateCategoriesBtn");
+        generateCategoriesBtn.addEventListener("click", async () => {
+          const confirmed = confirm("Do you want to generate categories for uncategorized tasks using AI?");
+          if (!confirmed) return;
+        
+          const token = localStorage.getItem("token");
+          if (!token) {
+            alert("You must be logged in.");
+            return;
+          }
+        
+          try {
+            const res = await fetch("http://localhost:5000/api/tasks/generate-categories", {
+              method: "POST",
+              headers: {
+                "Authorization": `Bearer ${token}`,
+              },
+            });
+        
+            const result = await res.json();
+        
+            if (!res.ok) {
+              console.error("AI category generation error:", result.error || result.details);
+              alert("❌ Failed to generate categories.");
+              return;
+            }
+        
+            alert("✅ Categories generated successfully!");
+            loadTasks(); // Refresh the UI
+          } catch (err) {
+            console.error("Error calling AI categorization API:", err);
+            alert("❌ Something went wrong.");
+          }
+        });
+        
   });
   

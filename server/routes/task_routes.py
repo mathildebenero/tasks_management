@@ -6,9 +6,12 @@ from bson import ObjectId
 from auth_middleware import jwt_required
 from db import tasks_collection
 from models.task import validate_task_data, format_task_document
+from openai import OpenAI
+import os
+import openai
+import random
 
 task_bp = Blueprint("tasks", __name__, url_prefix="/api/tasks")
-
 
 # GET /api/tasks — Get all tasks for the logged in and authenticated user
 @task_bp.route("", methods=["GET"])
@@ -111,3 +114,77 @@ def delete_task(task_id):
 
     except Exception:
         return jsonify({"error": "Invalid task ID format."}), 400
+
+# API Route to Categorize Tasks with AI
+@task_bp.route("/generate-categories", methods=["POST"])
+@jwt_required
+def generate_categories():
+    # 1. Get all uncategorized tasks for this user (keep real MongoDB docs)
+    tasks = list(tasks_collection.find({"user_id": ObjectId(g.user_id), "category": ""}))
+
+    if not tasks:
+        return jsonify({"message": "No uncategorized tasks found."}), 200
+
+    # 2. Prepare descriptions for the prompt
+    task_descriptions = [f"{t['name']}: {t['description']}" for t in tasks]
+    prompt = (
+        "Here is a list of tasks, each with a name and description. "
+        "Return a JSON object mapping ONLY the task names to one of 5 consistent category names total.\n\n"
+        "Example format: { \"Task name\": \"Category\", ... }\n\n"
+        f"Tasks:\n" + "\n".join([f"{t['name']}: {t['description']}" for t in tasks])
+    )
+
+    try:
+        client = openai.OpenAI(
+            api_key=os.getenv("OPENROUTER_API_KEY"),
+            base_url="https://openrouter.ai/api/v1"
+        )
+
+        response = client.chat.completions.create(
+            model="gpt-3.5-turbo",
+            messages=[{"role": "user", "content": prompt}]
+        )
+
+        import json
+        content = response.choices[0].message.content
+
+        print("🔵 AI raw response:\n", content)
+
+        # Try to parse the AI's response as JSON
+        try:
+            import re
+
+            # Remove trailing commas before closing braces/brackets (common AI mistake)
+            cleaned_content = re.sub(r",(\s*[}\]])", r"\1", content)
+
+            try:
+                category_map = json.loads(cleaned_content)
+            except json.JSONDecodeError as e:
+                print("🔴 Still invalid JSON after cleanup:", e)
+                return jsonify({"error": "AI response not valid JSON", "raw": content}), 500
+
+        except json.JSONDecodeError as e:
+            print("🔴 Failed to parse JSON:", e)
+            return jsonify({"error": "AI response not valid JSON", "raw": content}), 500
+
+        # 3. Update each task with the new category
+        updates = []
+        for task in tasks:
+            name = task["name"]
+            new_category = category_map.get(name)
+            print(f"🟡 Task: {name} | Proposed Category: {new_category}")  # Debug each assignment
+            if new_category:
+                tasks_collection.update_one(
+                    {"_id": task["_id"]},
+                    {"$set": {"category": new_category}}
+                )
+                updates.append({
+                    "id": str(task["_id"]),
+                    "category": new_category
+                })
+
+        return jsonify({"message": "Categories generated", "updates": updates}), 200
+
+    except Exception as e:
+        print("AI error:", str(e))
+        return jsonify({"error": "Failed to generate categories", "details": str(e)}), 500

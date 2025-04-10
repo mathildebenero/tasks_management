@@ -169,4 +169,24 @@
   .close-button:hover {
     color: #333;
   }
+
+  .hidden-category {
+    display: none;
+  }
+  #generateCategoriesBtn {
+    margin-left: 10px;
+    padding: 6px 12px;
+    font-size: 14px;
+    background-color: #10a37f;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+  }
+  
+  #generateCategoriesBtn:hover {
+    background-color: #0e8b6b;
+  }
+  
+  
   

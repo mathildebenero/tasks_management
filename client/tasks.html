@@ -22,6 +22,10 @@
     <div class="nav-left">
       <button id="addTaskBtn">Add Task</button>
 
+      <button id="generateCategoriesBtn" title="Generate categories with AI 💡">
+        💡 Generate Categories with AI
+      </button>      
+
       <select id="filterCategory">
         <option value="">Filter by Category</option>
         <option value="Work">Work</option>
@@ -87,9 +91,9 @@
           </select>
         </div>
   
-        <div class="form-group">
+        <div class="form-group hidden-category">
           <label for="category">Category</label>
-          <select id="category" name="category" required>
+          <select id="category" name="category">
             <option value="">Select a category</option>
             <option value="Work">Work</option>
             <option value="Personal">Personal</option>

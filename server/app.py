@@ -13,6 +13,15 @@ from flask import Flask
 from flask_cors import CORS
 from routes.auth_routes import auth_bp
 from routes.task_routes import task_bp
+from dotenv import load_dotenv
+import os
+import openai
+
+# Load API key from .env first
+load_dotenv()
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+openai.api_key = OPENROUTER_API_KEY
+openai.base_url = "https://openrouter.ai/api/v1"  # Required for OpenRouter
 
 
 app = Flask(__name__)
@@ -23,7 +32,6 @@ CORS(app, supports_credentials=True, resources={r"/api/*": {"origins": "http://1
 # Register auth and task routes
 app.register_blueprint(auth_bp)
 app.register_blueprint(task_bp)
-
 
 if __name__ == "__main__":
     app.run(debug=True)
